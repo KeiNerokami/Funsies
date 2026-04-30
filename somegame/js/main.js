@@ -67,6 +67,9 @@ var Achievements = {
     setPanel: function(open) {
         if (open) {
             setLevelModesPanel(false);
+            if (typeof Leaderboard !== "undefined") {
+                Leaderboard.setPanel(false);
+            }
         }
         $("#drawerPanel").toggleClass("achievementsOpen", open);
         $("#achievementsToggle")
@@ -111,6 +114,9 @@ function getCurrentModeNote() {
 function setLevelModesPanel(open) {
     if (open) {
         Achievements.setPanel(false);
+        if (typeof Leaderboard !== "undefined") {
+            Leaderboard.setPanel(false);
+        }
     }
     $("#drawerPanel").toggleClass("levelModesOpen", open);
     $("#levelModesToggle")
@@ -154,6 +160,9 @@ function setOptionsDrawer(open) {
     if (! open) {
         Achievements.setPanel(false);
         setLevelModesPanel(false);
+        if (typeof Leaderboard !== "undefined") {
+            Leaderboard.setPanel(false);
+        }
     }
 }
 
@@ -415,9 +424,13 @@ $(document).ready(function() {
         $("#achievementsToggle").click(function() {
             Achievements.togglePanel();
         });
+        $("#leaderboardToggle").click(function() {
+            Leaderboard.togglePanel();
+        });
         $("#levelModesToggle").click(function() {
             toggleLevelModesPanel();
         });
+        Leaderboard.init();
         bindBoardTouchControls();
         $("input[name='level']").change(function() {
             if (game == null || game.done || game.timer == null) {

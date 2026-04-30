@@ -10,6 +10,7 @@
     <script type="text/javascript" src="js/game.js"></script>
     <script type="text/javascript" src="js/block.js"></script>
     <script type="text/javascript" src="js/snake.js"></script>
+    <script type="text/javascript" src="js/leaderboard.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
     <link rel="stylesheet" type="text/css" href="styles/snake.css" />
 </head>
@@ -56,6 +57,14 @@
 						<span class="achievementState"></span>
 						<span><strong>A ghost!</strong> snake ate 5th food in Pacman?</span>
 					</div>
+				</div>
+				<button type="button" id="leaderboardToggle" aria-controls="leaderboardPanel" aria-expanded="false">
+					<span class="favico favico-leaderboard" aria-hidden="true"></span>
+					<span>Leaderboard</span>
+				</button>
+				<div id="leaderboardPanel" aria-hidden="true">
+					<div id="leaderboardStatus">Loading...</div>
+					<ol id="leaderboardScores"></ol>
 				</div>
 				<div class="control nameControl">
 					<label for="playerName">Name:</label>

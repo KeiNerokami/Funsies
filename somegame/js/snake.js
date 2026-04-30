@@ -239,6 +239,9 @@ var Snake = {
         this.clearTimer();
         game.stopTimer();
         game.done = true;
+        if (typeof submitLeaderboardScore === "function") {
+            submitLeaderboardScore(game);
+        }
         setTimeout("Frame.gameOver()", 100);
     },
 

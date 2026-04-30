@@ -446,6 +446,9 @@ Game.prototype.handlePacmanDefeated = function() {
     this.ghosts = [];
     this.stopTimer();
     Snake.clearTimer();
+    if (typeof submitLeaderboardScore === "function") {
+        submitLeaderboardScore(this);
+    }
 }
 Game.prototype.drawPacmanFood = function() {
     // Future reference only: this big food is not drawn in the current
