@@ -1,0 +1,541 @@
+html,
+body {
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	min-height: 100dvh;
+	overflow: hidden;
+	background: #101820;
+	overscroll-behavior: none;
+}
+
+#main {
+	width: calc(100vw - 3em);
+	height: calc(100vh - 3em);
+	height: calc(100dvh - 3em);
+	padding: 1.5em;
+}
+
+h2 {
+	font-family: Tahoma, Geneva, sans-serif;
+}
+
+h3 {
+	font-family: Tahoma, Geneva, sans-serif;
+}
+
+p {
+	font-family: Tahoma, Geneva, sans-serif;
+}
+
+div,
+input,
+button,
+label {
+	font-family: Tahoma, Geneva, sans-serif;
+}
+
+#error {
+	margin-top: 3em;
+	border-width: thin;
+	border-style: dashed;
+	border-color: #000;
+	padding: 1em;
+}
+
+#error p {
+	margin-left: 11.5em;
+	margin-top: 0.5em;
+	margin-right: 3em;
+	padding: 1.5em;
+	background-color: #FF9494;
+}
+
+#error p span {
+	display: block;
+	margin-left: 5em;
+}
+
+#error img {
+	float: left;
+}
+
+#board {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: thin solid #000;
+	background: #0000FF;
+	box-sizing: border-box;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+#optionsGroup {
+	position: absolute;
+	right: 1em;
+	bottom: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	align-items: flex-end;
+	max-width: calc(100% - 2em);
+	color: #fff;
+	box-sizing: border-box;
+}
+
+#optionsGroup #options {
+	display: inline;
+}
+
+#drawerToggle,
+#optionsGroup #newGame,
+#levelModesToggle,
+#achievementsToggle {
+	float: none;
+	margin-right: 0;
+	cursor: pointer;
+}
+
+#drawerToggle,
+#optionsGroup #newGame,
+#levelModesToggle,
+#achievementsToggle {
+	display: inline-flex;
+	gap: 0.45em;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5em 0.85em;
+	color: #00e5ff;
+	background: #001a8f;
+	border: 3px solid #00e5ff;
+	box-shadow: 4px 4px 0 #000;
+	font-weight: bold;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+#drawerToggle:hover,
+#drawerToggle:focus,
+#optionsGroup #newGame:hover,
+#optionsGroup #newGame:focus,
+#levelModesToggle:hover,
+#levelModesToggle:focus,
+#achievementsToggle:hover,
+#achievementsToggle:focus {
+	color: #fff;
+	background: #1234c8;
+	border-color: #00004c;
+	outline: none;
+}
+
+.favico {
+	position: relative;
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	flex: 0 0 auto;
+	color: currentColor;
+	image-rendering: pixelated;
+}
+
+.favico-menu::before {
+	content: "";
+	position: absolute;
+	left: 0.1em;
+	top: 0.18em;
+	width: 0.8em;
+	height: 0.16em;
+	background: currentColor;
+	box-shadow: 0 0.28em 0 currentColor, 0 0.56em 0 currentColor;
+}
+
+.favico-new {
+	border: 0.15em solid currentColor;
+	box-sizing: border-box;
+}
+
+.favico-new::before,
+.favico-new::after {
+	content: "";
+	position: absolute;
+	background: currentColor;
+}
+
+.favico-new::before {
+	left: 0.2em;
+	top: 0.42em;
+	width: 0.6em;
+	height: 0.16em;
+}
+
+.favico-new::after {
+	left: 0.42em;
+	top: 0.2em;
+	width: 0.16em;
+	height: 0.6em;
+}
+
+.favico-level {
+	border: 0.15em solid currentColor;
+	box-sizing: border-box;
+}
+
+.favico-level::before {
+	content: "";
+	position: absolute;
+	left: 0.18em;
+	top: 0.18em;
+	width: 0.16em;
+	height: 0.16em;
+	background: currentColor;
+	box-shadow:
+		0.32em 0 0 currentColor,
+		0 0.32em 0 currentColor,
+		0.32em 0.32em 0 currentColor;
+}
+
+.favico-achievements::before {
+	content: "";
+	position: absolute;
+	left: 0.2em;
+	top: 0.1em;
+	width: 0.6em;
+	height: 0.5em;
+	background: currentColor;
+	box-shadow:
+		-0.18em 0.12em 0 -0.04em currentColor,
+		0.18em 0.12em 0 -0.04em currentColor,
+		0 0.48em 0 -0.18em currentColor,
+		0 0.72em 0 -0.1em currentColor;
+}
+
+#drawerPanel {
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 0.5em);
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	gap: 0.4em;
+	align-items: stretch;
+	width: 14em;
+	max-width: calc(100vw - 5em);
+	padding: 0.7em 0.8em;
+	color: #fff;
+	background: #001a8f;
+	border: 4px solid #00e5ff;
+	box-sizing: border-box;
+	box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #fff;
+	opacity: 0;
+	pointer-events: none;
+	transform: translateY(0.5em);
+	transition: opacity 160ms ease, transform 160ms ease;
+	visibility: hidden;
+}
+
+#optionsGroup.drawerOpen #drawerPanel {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0);
+	visibility: visible;
+}
+
+#game {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.nameControl {
+	order: 1;
+}
+
+.control {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	gap: 0.35em;
+	align-items: stretch;
+}
+
+.control > label:first-child {
+	font-weight: bold;
+	color: #00e5ff;
+	text-transform: uppercase;
+}
+
+.control input[type="text"] {
+	width: 100%;
+	padding: 0.35em 0.45em;
+	color: #fff;
+	background: #00004c;
+	border: 3px solid #00e5ff;
+	box-sizing: border-box;
+	font-weight: bold;
+}
+
+.control input[type="text"]:focus {
+	color: #001a8f;
+	background: #00e5ff;
+	border-color: #fff;
+	outline: none;
+}
+
+.control label {
+	width: auto;
+	text-align: left;
+	margin-right: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+#optionsGroup #newGame {
+	order: 6;
+	align-self: center;
+	padding: 0.45em 0.75em;
+	color: #00e5ff;
+	background: #00004c;
+	border: 3px solid #00e5ff;
+	box-shadow: 3px 3px 0 #000;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#levelModesToggle {
+	order: 2;
+	align-self: stretch;
+	padding: 0.45em 0.6em;
+	color: #00e5ff;
+	background: #00004c;
+	border: 3px solid #00e5ff;
+	box-shadow: 3px 3px 0 #000;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#levelModesPanel {
+	order: 3;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+	padding-top: 0.1em;
+	pointer-events: none;
+	transform: translateY(-0.35em);
+	transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
+	visibility: hidden;
+}
+
+#drawerPanel.levelModesOpen #levelModesPanel {
+	max-height: 24em;
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0);
+	visibility: visible;
+}
+
+#achievementsToggle {
+	order: 4;
+	align-self: stretch;
+	padding: 0.45em 0.6em;
+	color: #00e5ff;
+	background: #00004c;
+	border: 3px solid #00e5ff;
+	box-shadow: 3px 3px 0 #000;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#achievementsPanel {
+	order: 5;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+	padding-top: 0.1em;
+	pointer-events: none;
+	transform: translateY(-0.35em);
+	transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
+	visibility: hidden;
+}
+
+#drawerPanel.achievementsOpen #achievementsPanel {
+	max-height: 28em;
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0);
+	visibility: visible;
+}
+
+.achievementItem {
+	display: flex;
+	gap: 0.3em;
+	align-items: flex-start;
+	padding: 0.25em;
+	color: #95a8ff;
+	background: #00004c;
+	border: 2px solid #2746ff;
+	font-size: 0.75em;
+	line-height: 1.35;
+}
+
+.achievementItem strong {
+	display: block;
+	color: #fff;
+	font-size: 1em;
+	text-transform: uppercase;
+}
+
+.achievementState {
+	width: 0.85em;
+	height: 0.85em;
+	margin-top: 0.15em;
+	flex: 0 0 auto;
+	background: #001a8f;
+	border: 2px solid #2746ff;
+	box-sizing: border-box;
+}
+
+.achievementItem.unlocked {
+	color: #fff;
+	border-color: #00e5ff;
+}
+
+.achievementItem.unlocked .achievementState {
+	background: #00e5ff;
+	border-color: #fff;
+	box-shadow: inset 0 0 0 2px #00004c;
+}
+
+#drawerPanel .control label:not(:first-child) {
+	flex-direction: row;
+	align-items: center;
+	gap: 0.35em;
+	padding: 0.3em 0.45em;
+	color: #fff;
+	background: #00004c;
+	border: 2px solid #00e5ff;
+	box-sizing: border-box;
+}
+
+#drawerPanel .control label:not(:first-child):hover,
+#drawerPanel .control label:not(:first-child):focus-within {
+	color: #fff;
+	background: #1234c8;
+	border-color: #00004c;
+}
+
+.modeNote {
+	opacity: 0.5;
+	font-size: 0.75em;
+}
+
+#drawerPanel input[type="radio"] {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 0.9em;
+	height: 0.9em;
+	margin-right: 0.25em;
+	vertical-align: -0.1em;
+	background: #001a8f;
+	border: 2px solid #00e5ff;
+	box-shadow: inset 0 0 0 2px #00004c;
+	cursor: pointer;
+}
+
+#drawerPanel input[type="radio"]:checked {
+	background: #00e5ff;
+	box-shadow: inset 0 0 0 2px #00004c, inset 0 0 0 4px #fff;
+}
+
+#drawerPanel input[type="radio"]:focus {
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+@media (max-width: 700px), (max-height: 520px) {
+	#main {
+		width: calc(100vw - 1.5em);
+		height: calc(100vh - 1.5em);
+		height: calc(100dvh - 1.5em);
+		padding: 0.75em;
+	}
+
+	#optionsGroup {
+		right: 0.5em;
+		bottom: 0.5em;
+		gap: 0.35em;
+		max-width: calc(100vw - 1em);
+	}
+
+	#drawerToggle,
+	#optionsGroup #newGame,
+	#levelModesToggle,
+	#achievementsToggle {
+		padding: 0.38em 0.55em;
+		font-size: 0.78em;
+		border-width: 2px;
+		box-shadow: 3px 3px 0 #000;
+	}
+
+	#drawerPanel {
+		width: min(13em, calc(100vw - 1em));
+		max-width: calc(100vw - 1em);
+		max-height: calc(100dvh - 4.5em);
+		overflow-y: auto;
+		gap: 0.28em;
+		padding: 0.55em;
+		border-width: 3px;
+		box-shadow: 4px 4px 0 #000, inset 0 0 0 2px #fff;
+	}
+
+	.control {
+		gap: 0.25em;
+	}
+
+	.control > label:first-child {
+		font-size: 0.78em;
+	}
+
+	.control input[type="text"] {
+		padding: 0.28em 0.35em;
+		font-size: 0.85em;
+		border-width: 2px;
+	}
+
+	#drawerPanel .control label:not(:first-child) {
+		gap: 0.25em;
+		padding: 0.24em 0.35em;
+		font-size: 0.78em;
+		border-width: 2px;
+	}
+
+	#drawerPanel input[type="radio"] {
+		width: 0.85em;
+		height: 0.85em;
+		margin-right: 0.15em;
+	}
+
+	.achievementItem {
+		gap: 0.25em;
+		padding: 0.22em;
+		font-size: 0.68em;
+	}
+
+	.achievementState {
+		width: 0.75em;
+		height: 0.75em;
+	}
+
+	.modeNote {
+		font-size: 0.7em;
+	}
+}

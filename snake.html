@@ -1,0 +1,82 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Snake Game v. 1.0</title>
+    <script type="text/javascript" src="somegame/js/jquery-1.4.4.js"></script>
+    <script type="text/javascript" src="somegame/js/modernizr-1.6.min.js"></script>
+    <script type="text/javascript" src="somegame/js/frame.js"></script>
+    <script type="text/javascript" src="somegame/js/food.js"></script>
+    <script type="text/javascript" src="somegame/js/score.js"></script>
+    <script type="text/javascript" src="somegame/js/game.js"></script>
+    <script type="text/javascript" src="somegame/js/block.js"></script>
+    <script type="text/javascript" src="somegame/js/snake.js"></script>
+    <script type="text/javascript" src="somegame/js/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="somegame/styles/snake.css" />
+</head>
+<body>
+<div id="main">
+	<div id="game">
+		<canvas id="board" width="620" height="400"></canvas>
+		<div id="optionsGroup" class="drawerClosed">
+			<button type="button" id="drawerToggle" name="drawerToggle" aria-controls="drawerPanel" aria-expanded="false">
+				<span class="favico favico-menu" aria-hidden="true"></span>
+				<span class="buttonText">Menu</span>
+			</button>
+			<div id="drawerPanel">
+				<button type="button" id="newGame" name="newGame">
+					<span class="favico favico-new" aria-hidden="true"></span>
+					<span>New Game</span>
+				</button>
+				<button type="button" id="levelModesToggle" aria-controls="levelModesPanel" aria-expanded="false">
+					<span class="favico favico-level" aria-hidden="true"></span>
+					<span>Level/Modes</span>
+				</button>
+				<button type="button" id="achievementsToggle" aria-controls="achievementsPanel" aria-expanded="false">
+					<span class="favico favico-achievements" aria-hidden="true"></span>
+					<span>Achievements</span>
+				</button>
+				<div id="achievementsPanel" aria-hidden="true">
+					<div class="achievementItem" data-achievement="ouroboros">
+						<span class="achievementState"></span>
+						<span><strong>Ouroboros</strong> snake ate itself</span>
+					</div>
+					<div class="achievementItem" data-achievement="longSnake">
+						<span class="achievementState"></span>
+						<span><strong>Thats one long snake</strong> reach 100 pts on Simple to Insane</span>
+					</div>
+					<div class="achievementItem" data-achievement="speed">
+						<span class="achievementState"></span>
+						<span><strong>Need for speed</strong> play F1 racer mode</span>
+					</div>
+					<div class="achievementItem" data-achievement="pacman">
+						<span class="achievementState"></span>
+						<span><strong>Pacman?</strong> play Pacman? mode</span>
+					</div>
+					<div class="achievementItem" data-achievement="ghost">
+						<span class="achievementState"></span>
+						<span><strong>A ghost!</strong> snake ate 5th food in Pacman?</span>
+					</div>
+				</div>
+				<div class="control nameControl">
+					<label for="playerName">Name:</label>
+					<input type="text" value="whoru" name="playerName" id="playerName" size="15" maxlength="15" />
+				</div>
+				<div id="levelModesPanel" aria-hidden="true">
+					<div class="control levelControl">
+						<label>Level:</label>				
+						<label><input type="radio" name="level" value="1"> Simple</label>
+						<label><input type="radio" name="level" value="2"> Easy</label>
+						<label><input type="radio" name="level" value="3"> Medium</label>
+						<label><input type="radio" name="level" value="4"> Hard</label>
+						<label><input type="radio" name="level" checked value="5"> Insane <small class="modeNote">(Cuz the creator is insane)</small></label>
+						<label><input type="radio" name="level" value="6"> F1 racer mode <small class="modeNote">(You need speed?)</small></label>
+						<label><input type="radio" name="level" value="7"> Impossible <small class="modeNote">(yes)</small></label>
+						<label><input type="radio" name="level" value="46"> Pacman? <small class="modeNote">(How did this end up here?)</small></label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
