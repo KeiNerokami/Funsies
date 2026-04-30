@@ -220,13 +220,24 @@ label {
 	content: "";
 	position: absolute;
 	left: 0.08em;
-	bottom: 0.12em;
-	width: 0.18em;
-	height: 0.45em;
+	top: 0.1em;
+	width: 0.84em;
+	height: 0.8em;
+	border: 0.15em solid currentColor;
+	box-sizing: border-box;
+}
+
+.favico-leaderboard::after {
+	content: "";
+	position: absolute;
+	left: 0.25em;
+	bottom: 0.24em;
+	width: 0.12em;
+	height: 0.22em;
 	background: currentColor;
 	box-shadow:
-		0.31em -0.18em 0 currentColor,
-		0.62em -0.34em 0 currentColor;
+		0.22em -0.12em 0 currentColor,
+		0.44em -0.25em 0 currentColor;
 }
 
 #drawerPanel {
@@ -322,7 +333,9 @@ label {
 	text-transform: uppercase;
 }
 
-#levelModesToggle {
+#levelModesToggle,
+#achievementsToggle,
+#leaderboardToggle {
 	order: 2;
 	align-self: stretch;
 	padding: 0.45em 0.6em;
@@ -332,6 +345,14 @@ label {
 	box-shadow: 3px 3px 0 #000;
 	font-weight: bold;
 	text-transform: uppercase;
+}
+
+#achievementsToggle {
+	order: 4;
+}
+
+#leaderboardToggle {
+	order: 6;
 }
 
 #levelModesPanel {
@@ -357,18 +378,6 @@ label {
 	visibility: visible;
 }
 
-#achievementsToggle {
-	order: 4;
-	align-self: stretch;
-	padding: 0.45em 0.6em;
-	color: #00e5ff;
-	background: #00004c;
-	border: 3px solid #00e5ff;
-	box-shadow: 3px 3px 0 #000;
-	font-weight: bold;
-	text-transform: uppercase;
-}
-
 #achievementsPanel {
 	order: 5;
 	display: flex;
@@ -390,18 +399,6 @@ label {
 	pointer-events: auto;
 	transform: translateY(0);
 	visibility: visible;
-}
-
-#leaderboardToggle {
-	order: 6;
-	align-self: stretch;
-	padding: 0.45em 0.6em;
-	color: #00e5ff;
-	background: #00004c;
-	border: 3px solid #00e5ff;
-	box-shadow: 3px 3px 0 #000;
-	font-weight: bold;
-	text-transform: uppercase;
 }
 
 #leaderboardPanel {
