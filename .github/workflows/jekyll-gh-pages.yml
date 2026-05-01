@@ -34,6 +34,8 @@ jobs:
           SNAKE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SNAKE_SUPABASE_PUBLISHABLE_KEY || vars.SNAKE_SUPABASE_PUBLISHABLE_KEY }}
           SNAKE_SUPABASE_AUTH_PATH: ${{ secrets.SNAKE_SUPABASE_AUTH_PATH || vars.SNAKE_SUPABASE_AUTH_PATH }}
           SNAKE_SUPABASE_SCORES_PATH: ${{ secrets.SNAKE_SUPABASE_SCORES_PATH || vars.SNAKE_SUPABASE_SCORES_PATH }}
+          SNAKE_SUPABASE_REDIRECT_URL: ${{ secrets.SNAKE_SUPABASE_REDIRECT_URL || vars.SNAKE_SUPABASE_REDIRECT_URL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           node <<'NODE'
           const fs = require('fs');
@@ -50,11 +52,27 @@ jobs:
             }
             return value.replace(/\/+$/, '');
           }
+          function defaultPagesUrl() {
+            const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/');
+            if (!owner || !repo) {
+              return '';
+            }
+            return `https://${owner.toLowerCase()}.github.io/${repo}/`;
+          }
+          function normalizeUrl(name, value) {
+            const url = new URL(value);
+            if (!/^https?:$/.test(url.protocol)) {
+              throw new Error(`${name} must start with https://`);
+            }
+            url.hash = '';
+            return url.toString();
+          }
           const config = {
             supabaseUrl: process.env.SNAKE_SUPABASE_URL || '',
             supabaseKey: process.env.SNAKE_SUPABASE_PUBLISHABLE_KEY || '',
             authPath: process.env.SNAKE_SUPABASE_AUTH_PATH || '',
-            scoresPath: process.env.SNAKE_SUPABASE_SCORES_PATH || ''
+            scoresPath: process.env.SNAKE_SUPABASE_SCORES_PATH || '',
+            redirectUrl: process.env.SNAKE_SUPABASE_REDIRECT_URL || defaultPagesUrl()
           };
           const missing = Object.keys(config).filter((key) => !config[key]);
           if (missing.length) {
@@ -63,6 +81,7 @@ jobs:
           config.supabaseUrl = normalizeOrigin(config.supabaseUrl);
           config.authPath = normalizePath('SNAKE_SUPABASE_AUTH_PATH', config.authPath);
           config.scoresPath = normalizePath('SNAKE_SUPABASE_SCORES_PATH', config.scoresPath);
+          config.redirectUrl = normalizeUrl('SNAKE_SUPABASE_REDIRECT_URL', config.redirectUrl);
           fs.writeFileSync(
             'somegame/js/config.js',
             `window.SnakeSupabaseConfig = ${JSON.stringify(config, null, 2)};\n`

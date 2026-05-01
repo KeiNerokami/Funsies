@@ -2,5 +2,6 @@ window.SnakeSupabaseConfig = {
     supabaseUrl: "",
     supabaseKey: "",
     authPath: "",
-    scoresPath: ""
+    scoresPath: "",
+    redirectUrl: ""
 };

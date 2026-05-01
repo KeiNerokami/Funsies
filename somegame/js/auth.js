@@ -20,7 +20,8 @@
     }
 
     function redirectUrl() {
-        var url = new URL(window.location.href);
+        var config = window.SnakeSupabaseConfig || {};
+        var url = new URL(config.redirectUrl || window.location.href);
         url.hash = "";
         url.searchParams.delete("code");
         url.searchParams.delete("error");
