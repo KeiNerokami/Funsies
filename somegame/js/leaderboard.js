@@ -1,161 +1,221 @@
-/*!
- * Global leaderboard backed by Supabase's public REST API.
- */
 var Leaderboard = {
-    supabaseUrl: "https://ellrzniyizneoagmlvdf.supabase.co",
-    supabaseKey: "sb_publishable_-t8HW6JaYWMcujL-xCy37g_Oyv74BWf",
-    tableName: "scores",
-    submittedGames: [],
+    config: window.SnakeSupabaseConfig || {},
+    scores: [],
+    loading: false,
 
     init: function() {
-        this.load();
+        this.renderStatus(this.isConfigured() ?
+            "Open leaderboard to load scores." :
+            "Leaderboard not configured.");
     },
 
-    endpoint: function(path) {
-        return this.supabaseUrl + "/rest/v1/" + path;
+    supabaseUrl: function() {
+        return this.config.supabaseUrl || "";
     },
 
-    headers: function(extra) {
+    supabaseKey: function() {
+        return this.config.supabaseKey || "";
+    },
+
+    scoresPath: function() {
+        return this.config.scoresPath || "";
+    },
+
+    isConfigured: function() {
+        return !! (this.supabaseUrl() && this.supabaseKey() && this.scoresPath());
+    },
+
+    endpoint: function(query) {
+        return this.supabaseUrl() + this.scoresPath() + (query || "");
+    },
+
+    headers: function(extraHeaders) {
+        extraHeaders = extraHeaders || {};
         var headers = {
-            "apikey": this.supabaseKey,
+            "apikey": this.supabaseKey(),
             "Accept": "application/json"
         };
-        for (var key in extra) {
-            if (extra.hasOwnProperty(key)) {
-                headers[key] = extra[key];
+        var authToken = this.authToken();
+        if (authToken) {
+            headers.Authorization = "Bearer " + authToken;
+        }
+        for (var key in extraHeaders) {
+            if (extraHeaders.hasOwnProperty(key)) {
+                headers[key] = extraHeaders[key];
             }
         }
         return headers;
     },
 
-    request: function(path, options) {
-        if (! window.fetch) {
-            return Promise.reject(new Error("Leaderboard requires a browser with fetch support."));
-        }
-        options = options || {};
-        options.headers = this.headers(options.headers || {});
-        return fetch(this.endpoint(path), options).then(function(response) {
-            if (! response.ok) {
-                return response.text().then(function(message) {
-                    throw new Error(message || response.statusText);
-                });
-            }
-            if (response.status === 204) {
-                return null;
-            }
-            return response.text().then(function(text) {
-                return text ? JSON.parse(text) : null;
-            });
-        });
-    },
-
-    cleanName: function(name) {
+    sanitizeName: function(name) {
         name = $.trim(name || "");
-        if (! name) {
+        if (name.length === 0) {
             name = "whoru";
         }
         return name.substring(0, 15);
     },
 
-    levelName: function(level) {
-        switch (parseInt(level, 10)) {
-            case 1:
-                return "Simple";
-            case 2:
-                return "Easy";
-            case 3:
-                return "Medium";
-            case 4:
-                return "Hard";
-            case 5:
-                return "Insane";
-            case 6:
-                return "F1 racer";
-            case 7:
-                return "Impossible";
-            case 46:
-                return "Pacman?";
-            default:
-                return "Level " + level;
+    authToken: function() {
+        if (window.SnakeAuth) {
+            return SnakeAuth.authToken();
+        }
+        try {
+            return localStorage.getItem("snake.supabase.authToken") || "";
+        } catch (e) {
+            return "";
         }
     },
 
-    setStatus: function(message) {
-        $("#leaderboardStatus").text(message).toggle(!! message);
+    authUser: function() {
+        if (window.SnakeAuth) {
+            return SnakeAuth.authUser();
+        }
+        try {
+            return JSON.parse(localStorage.getItem("snake.supabase.authUser") || "null");
+        } catch (e) {
+            return null;
+        }
     },
 
-    render: function(scores) {
-        var list = $("#leaderboardScores");
-        list.empty();
-        if (! scores || scores.length === 0) {
-            this.setStatus("No scores yet.");
+    gameDurationMs: function(currentGame) {
+        if (! currentGame) {
+            return 0;
+        }
+        if (currentGame.elapsedMillis) {
+            return Math.max(0, currentGame.elapsedMillis());
+        }
+        if (! currentGame.score || ! currentGame.score.startTime) {
+            return 0;
+        }
+        var startTime = currentGame.score.startTime.getTime ?
+            currentGame.score.startTime.getTime() :
+            new Date(currentGame.score.startTime).getTime();
+        if (isNaN(startTime)) {
+            return 0;
+        }
+        return Math.max(0, new Date().getTime() - startTime);
+    },
+
+    submitGame: function(currentGame) {
+        if (currentGame == null || currentGame.scoreSubmitted) {
             return;
         }
-        this.setStatus("");
-        for (var i = 0; i < scores.length; i++) {
-            $("<li/>", { "class": "leaderboardScore" })
-                .append($("<span/>", { "class": "leaderboardRank", text: "#" + (i + 1) }))
-                .append($("<span/>", { "class": "leaderboardName", text: scores[i].name }))
-                .append($("<span/>", { "class": "leaderboardPoints", text: scores[i].score }))
-                .append($("<span/>", {
-                    "class": "leaderboardLevel",
-                    text: this.levelName(scores[i].level)
-                }))
-                .appendTo(list);
-        }
-    },
 
-    load: function() {
-        var self = this;
-        this.setStatus("Loading...");
-        return this.request(this.tableName + "?select=name,score,level,created_at&order=score.desc,created_at.asc&limit=10", {
-            method: "GET"
-        }).then(function(scores) {
-            self.render(scores);
-        }).catch(function(error) {
-            console.error(error);
-            self.setStatus("Leaderboard unavailable.");
-        });
-    },
-
-    submitGame: function(gameInstance) {
-        if (gameInstance == null || gameInstance.score == null) {
+        if (! this.isConfigured()) {
+            this.renderStatus("Leaderboard not configured.");
             return;
         }
-        if ($.inArray(gameInstance, this.submittedGames) !== -1) {
+
+        var authUser = this.authUser();
+        if (! this.authToken() || ! authUser || ! authUser.id) {
+            this.renderStatus("Sign in to submit scores.");
             return;
         }
-        this.submittedGames.push(gameInstance);
 
-        var self = this;
+        if (! window.fetch) {
+            this.renderStatus("Leaderboard needs fetch support.");
+            return;
+        }
+        currentGame.scoreSubmitted = true;
+
         var payload = {
-            name: this.cleanName(gameInstance.score.playerName),
-            score: Math.max(0, parseInt(gameInstance.score.points, 10) || 0),
-            level: parseInt(Snake.level, 10) || 5
+            user_id: authUser.id,
+            name: this.sanitizeName(currentGame.score.playerName),
+            score: Math.min(100000, Math.max(0, currentGame.score.points || 0)),
+            level: Snake.level || 2,
+            game_duration_ms: this.gameDurationMs(currentGame),
+            updated_at: new Date().toISOString()
         };
 
-        this.setStatus("Saving score...");
-        return this.request(this.tableName, {
+        this.renderStatus("Submitting score...");
+        fetch(this.endpoint("?on_conflict=user_id"), {
             method: "POST",
-            headers: {
+            headers: this.headers({
                 "Content-Type": "application/json",
-                "Prefer": "return=minimal"
-            },
+                "Prefer": "resolution=merge-duplicates,return=minimal"
+            }),
             body: JSON.stringify(payload)
-        }).then(function() {
-            self.setStatus("Score saved.");
-            return self.load();
-        }).catch(function(error) {
-            console.error(error);
-            self.setStatus("Score not saved.");
+        }).then(function(response) {
+            if (! response.ok) {
+                throw new Error("Score submit failed");
+            }
+            Leaderboard.renderStatus("Score submitted.");
+            Leaderboard.fetchScores();
+        }).catch(function() {
+            Leaderboard.renderStatus("Score submit failed.");
         });
+    },
+
+    fetchScores: function() {
+        if (! window.fetch || this.loading) {
+            return;
+        }
+        if (! this.isConfigured()) {
+            this.renderStatus("Leaderboard not configured.");
+            return;
+        }
+        this.loading = true;
+        this.renderStatus("Loading scores...");
+        fetch(this.endpoint("?select=name,score,level,created_at&order=score.desc,created_at.asc&limit=10"), {
+            method: "GET",
+            headers: this.headers({})
+        }).then(function(response) {
+            if (! response.ok) {
+                throw new Error("Score load failed");
+            }
+            return response.json();
+        }).then(function(scores) {
+            Leaderboard.scores = scores || [];
+            Leaderboard.render();
+        }).catch(function() {
+            Leaderboard.renderStatus("Leaderboard unavailable.");
+        }).then(function() {
+            Leaderboard.loading = false;
+        });
+    },
+
+    modeName: function(level) {
+        switch (parseInt(level, 10)) {
+            case 1: return "Simple";
+            case 2: return "Easy";
+            case 3: return "Medium";
+            case 4: return "Hard";
+            case 5: return "Insane";
+            case 6: return "F1";
+            case 7: return "Impossible";
+            case 46: return "Pacman?";
+            default: return "Level " + level;
+        }
+    },
+
+    renderStatus: function(message) {
+        $("#leaderboardStatus").text(message);
+    },
+
+    render: function() {
+        var list = $("#leaderboardScores");
+        list.empty();
+        if (this.scores.length === 0) {
+            this.renderStatus("No scores yet.");
+            return;
+        }
+        this.renderStatus("Top scores");
+        for (var i = 0; i < this.scores.length; i++) {
+            var score = this.scores[i];
+            var item = $("<li></li>").addClass("leaderboardScore");
+            $("<span></span>").addClass("leaderboardRank").text(i + 1).appendTo(item);
+            $("<span></span>").addClass("leaderboardName").text(score.name).appendTo(item);
+            $("<span></span>").addClass("leaderboardPoints").text(score.score).appendTo(item);
+            $("<span></span>").addClass("leaderboardLevel").text(this.modeName(score.level)).appendTo(item);
+            list.append(item);
+        }
     },
 
     setPanel: function(open) {
         if (open) {
-            Achievements.setPanel(false);
             setLevelModesPanel(false);
-            this.load();
+            Achievements.setPanel(false);
+            this.fetchScores();
         }
         $("#drawerPanel").toggleClass("leaderboardOpen", open);
         $("#leaderboardToggle")
@@ -169,6 +229,6 @@ var Leaderboard = {
     }
 };
 
-function submitLeaderboardScore(gameInstance) {
-    Leaderboard.submitGame(gameInstance);
+function submitLeaderboardScore(currentGame) {
+    Leaderboard.submitGame(currentGame);
 }

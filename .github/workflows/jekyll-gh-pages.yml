@@ -28,6 +28,30 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Generate Supabase config
+        env:
+          SNAKE_SUPABASE_URL: ${{ secrets.SNAKE_SUPABASE_URL }}
+          SNAKE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SNAKE_SUPABASE_PUBLISHABLE_KEY }}
+          SNAKE_SUPABASE_AUTH_PATH: ${{ secrets.SNAKE_SUPABASE_AUTH_PATH }}
+          SNAKE_SUPABASE_SCORES_PATH: ${{ secrets.SNAKE_SUPABASE_SCORES_PATH }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const config = {
+            supabaseUrl: process.env.SNAKE_SUPABASE_URL || '',
+            supabaseKey: process.env.SNAKE_SUPABASE_PUBLISHABLE_KEY || '',
+            authPath: process.env.SNAKE_SUPABASE_AUTH_PATH || '',
+            scoresPath: process.env.SNAKE_SUPABASE_SCORES_PATH || ''
+          };
+          const missing = Object.keys(config).filter((key) => !config[key]);
+          if (missing.length) {
+            throw new Error(`Missing GitHub Pages Supabase config: ${missing.join(', ')}`);
+          }
+          fs.writeFileSync(
+            'somegame/js/config.js',
+            `window.SnakeSupabaseConfig = ${JSON.stringify(config, null, 2)};\n`
+          );
+          NODE
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

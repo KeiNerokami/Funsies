@@ -39,6 +39,7 @@ var Frame = {
     },
     paused: function() {
     	this.displayMessage('Paused');
+        this.displayPausedTime();
     },
     displayMessage: function(message) {
     	this.clear();
@@ -96,7 +97,20 @@ var Frame = {
         context.font = "bold 16px Tahoma, Geneva, sans-serif";
         context.textAlign = "left";
         context.fillText("Score: " + game.score.points, 50, 42);
+        context.textAlign = "right";
+        context.fillText("Time: " + game.formattedElapsed(), (board.width / 2) - 50, 42);
     	context.restore();
+    },
+    displayPausedTime: function() {
+        if (game == null || ! game.formattedElapsed) {
+            return;
+        }
+        context.save();
+        context.fillStyle = "rgb(255,255,255)";
+        context.font = "bold 13px Tahoma, Geneva, sans-serif";
+        context.textAlign = "center";
+        context.fillText("Time: " + game.formattedElapsed(), board.width / 2, (board.height / 4) + 70);
+        context.restore();
     },
     displayPacmanFinalScore: function() {
         var boxWidth = Math.min(board.width - 36, 360);

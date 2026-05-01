@@ -18,6 +18,8 @@ Score.prototype.stopTime = null;
 Score.prototype.playerName = "";
 Score.prototype.init = function(playerName) {
     this.playerName = playerName;
+    this.startTime = new Date();
+    this.stopTime = null;
 }
 Score.prototype.display = function() {
     context.save();

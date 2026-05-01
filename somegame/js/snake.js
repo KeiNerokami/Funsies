@@ -43,7 +43,7 @@ var Snake = {
         var cells = Math.max(1, Math.floor((span - blockSize) / blockSize));
         return origin + (Math.floor(cells / 2) * blockSize);
     },
-    
+
     setLevel: function(level) {
     	this.level = parseInt(level);
     	switch (this.level) {

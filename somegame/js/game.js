@@ -25,6 +25,7 @@ Game.prototype.score = null;
 Game.prototype.food = null;
 Game.prototype.done = false;
 Game.prototype.pacmanMode = false;
+Game.prototype.scoreSubmitted = false;
 Game.prototype.pacman = null;
 Game.prototype.pacmanFood = null;
 Game.prototype.ghosts = null;
@@ -33,8 +34,13 @@ Game.prototype.pacmanPoints = 0;
 Game.prototype.powerCharges = 0;
 Game.prototype.pacmanMoveAt = 0;
 Game.prototype.ghostMoveAt = 0;
+Game.prototype.elapsedActiveMs = 0;
+Game.prototype.clockStartedAt = null;
 Game.prototype.init = function(playerName) {
     this.score = new Score(playerName);
+    this.scoreSubmitted = false;
+    this.elapsedActiveMs = 0;
+    this.clockStartedAt = null;
     this.pacmanMode = Snake.level === Game.pacmanModeLevel;
     this.ghosts = [];
     this.pacmanHp = Game.pacmanMaxHp;
@@ -231,20 +237,53 @@ Game.prototype.startGame = function() {
 Game.prototype.togglePause = function() {
     if (this.timer == null) {
         this.startTimer();
-    } else {    	
+    } else {
         this.stopTimer();
     }
 }
 Game.prototype.startTimer = function() {
+    this.startClock();
     this.timer = setTimeout("game.display()", Game.speed);
 }
 Game.prototype.stopTimer = function() {
+    this.stopClock();
     clearTimeout(this.timer);
     this.timer = null;
 }
 Game.prototype.resetTimer = function() {
     this.stopTimer();
     this.startTimer();
+}
+Game.prototype.startClock = function() {
+    if (this.clockStartedAt == null) {
+        this.clockStartedAt = new Date().getTime();
+    }
+}
+Game.prototype.stopClock = function() {
+    if (this.clockStartedAt != null) {
+        this.elapsedActiveMs += new Date().getTime() - this.clockStartedAt;
+        this.clockStartedAt = null;
+    }
+}
+Game.prototype.elapsedMillis = function() {
+    if (this.clockStartedAt == null) {
+        return this.elapsedActiveMs;
+    }
+    return this.elapsedActiveMs + (new Date().getTime() - this.clockStartedAt);
+}
+Game.prototype.formattedElapsed = function() {
+    var totalSeconds = Math.floor(this.elapsedMillis() / 1000);
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+}
+Game.prototype.drawTimer = function(x, y, align) {
+    context.save();
+    context.fillStyle = "rgb(255,255,255)";
+    context.font = "bold 14px Tahoma, Geneva, sans-serif";
+    context.textAlign = align || "left";
+    context.fillText("Time: " + this.formattedElapsed(), x, y);
+    context.restore();
 }
 Game.prototype.moveBlock = function(block, direction) {
     var moved = new Block(block.x, block.y, 0);
@@ -555,7 +594,7 @@ Game.prototype.drawPacmanHud = function() {
         context.fillStyle = "rgb(255,255,255)";
         context.textAlign = "center";
         context.font = "bold 9px Tahoma, Geneva, sans-serif";
-        context.fillText("Pacman HP " + this.pacmanHp + "/" + Game.pacmanMaxHp, board.width / 2, 32);
+        context.fillText("HP " + this.pacmanHp + "/" + Game.pacmanMaxHp + "  Time " + this.formattedElapsed(), board.width / 2, 32);
     } else {
         context.font = "bold 12px Tahoma, Geneva, sans-serif";
         context.textAlign = "left";
@@ -571,7 +610,8 @@ Game.prototype.drawPacmanHud = function() {
         context.fillText("Pac: " + this.pacmanPoints, 310, 14);
         context.fillText("Power: " + this.powerCharges, 310, 29);
         context.textAlign = "right";
-        context.fillText("Score: " + this.score.points, board.width - 18, 22);
+        context.fillText("Score: " + this.score.points, board.width - 18, 14);
+        context.fillText("Time: " + this.formattedElapsed(), board.width - 18, 29);
     }
     context.restore();
 }
@@ -612,6 +652,7 @@ Game.prototype.display = function() {
     Frame.display();
     if (! this.pacmanMode) {
         this.score.display();
+        this.drawTimer(12, 22, "left");
     }
     this.food.display();
     this.drawPacmanMode();

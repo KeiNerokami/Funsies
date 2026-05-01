@@ -67,9 +67,7 @@ var Achievements = {
     setPanel: function(open) {
         if (open) {
             setLevelModesPanel(false);
-            if (typeof Leaderboard !== "undefined") {
-                Leaderboard.setPanel(false);
-            }
+            Leaderboard.setPanel(false);
         }
         $("#drawerPanel").toggleClass("achievementsOpen", open);
         $("#achievementsToggle")
@@ -114,9 +112,7 @@ function getCurrentModeNote() {
 function setLevelModesPanel(open) {
     if (open) {
         Achievements.setPanel(false);
-        if (typeof Leaderboard !== "undefined") {
-            Leaderboard.setPanel(false);
-        }
+        Leaderboard.setPanel(false);
     }
     $("#drawerPanel").toggleClass("levelModesOpen", open);
     $("#levelModesToggle")
@@ -160,9 +156,7 @@ function setOptionsDrawer(open) {
     if (! open) {
         Achievements.setPanel(false);
         setLevelModesPanel(false);
-        if (typeof Leaderboard !== "undefined") {
-            Leaderboard.setPanel(false);
-        }
+        Leaderboard.setPanel(false);
     }
 }
 
@@ -394,11 +388,11 @@ function checkForGameSupport() {
 				'<img src="images/cartoon_snake.jpg" alt="cartoon snake" />' +
 				'<p>Your browser does not support the following HTML5 features which are ' +
 				'required to run this game!<span>' + missing + '</span></p>' +
-				'<p style="background-color: #FFF">Please install a browser like Firefox ' + 
+				'<p style="background-color: #FFF">Please install a browser like Firefox ' +
 				'or Chrome which supports these features.<br/><br/>' +
 				'<a href="http://www.mozilla.com/?from=sfx&amp;uid=0&amp;t=557"><img ' +
 				'src="http://sfx-images.mozilla.org/firefox/3.6/110x32_get_orange.png" ' +
-				'alt=Spread Firefox Affiliate Button" border="0" /></a>' + 
+				'alt=Spread Firefox Affiliate Button" border="0" /></a>' +
 				'<a href="http://www.google.com/chrome"><img src="images/chrome_logo.gif"' +
 				'border="0" alt="Download Google Chrome"></a>' +
 				'</p></div>');
@@ -411,6 +405,7 @@ function checkForGameSupport() {
 $(document).ready(function() {
     if (checkForGameSupport()) {
         Achievements.init();
+        Leaderboard.init();
     	board = $("#board")[0];
     	context = board.getContext("2d");
         resizeBoard();
@@ -430,7 +425,6 @@ $(document).ready(function() {
         $("#levelModesToggle").click(function() {
             toggleLevelModesPanel();
         });
-        Leaderboard.init();
         bindBoardTouchControls();
         $("input[name='level']").change(function() {
             if (game == null || game.done || game.timer == null) {
