@@ -30,13 +30,26 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Generate Supabase config
         env:
-          SNAKE_SUPABASE_URL: ${{ secrets.SNAKE_SUPABASE_URL }}
-          SNAKE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SNAKE_SUPABASE_PUBLISHABLE_KEY }}
-          SNAKE_SUPABASE_AUTH_PATH: ${{ secrets.SNAKE_SUPABASE_AUTH_PATH }}
-          SNAKE_SUPABASE_SCORES_PATH: ${{ secrets.SNAKE_SUPABASE_SCORES_PATH }}
+          SNAKE_SUPABASE_URL: ${{ secrets.SNAKE_SUPABASE_URL || vars.SNAKE_SUPABASE_URL }}
+          SNAKE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SNAKE_SUPABASE_PUBLISHABLE_KEY || vars.SNAKE_SUPABASE_PUBLISHABLE_KEY }}
+          SNAKE_SUPABASE_AUTH_PATH: ${{ secrets.SNAKE_SUPABASE_AUTH_PATH || vars.SNAKE_SUPABASE_AUTH_PATH }}
+          SNAKE_SUPABASE_SCORES_PATH: ${{ secrets.SNAKE_SUPABASE_SCORES_PATH || vars.SNAKE_SUPABASE_SCORES_PATH }}
         run: |
           node <<'NODE'
           const fs = require('fs');
+          function normalizeOrigin(value) {
+            const url = new URL(value);
+            if (!/^https?:$/.test(url.protocol)) {
+              throw new Error('SNAKE_SUPABASE_URL must start with https://');
+            }
+            return url.origin;
+          }
+          function normalizePath(name, value) {
+            if (!value.startsWith('/')) {
+              throw new Error(`${name} must start with /`);
+            }
+            return value.replace(/\/+$/, '');
+          }
           const config = {
             supabaseUrl: process.env.SNAKE_SUPABASE_URL || '',
             supabaseKey: process.env.SNAKE_SUPABASE_PUBLISHABLE_KEY || '',
@@ -47,6 +60,9 @@ jobs:
           if (missing.length) {
             throw new Error(`Missing GitHub Pages Supabase config: ${missing.join(', ')}`);
           }
+          config.supabaseUrl = normalizeOrigin(config.supabaseUrl);
+          config.authPath = normalizePath('SNAKE_SUPABASE_AUTH_PATH', config.authPath);
+          config.scoresPath = normalizePath('SNAKE_SUPABASE_SCORES_PATH', config.scoresPath);
           fs.writeFileSync(
             'somegame/js/config.js',
             `window.SnakeSupabaseConfig = ${JSON.stringify(config, null, 2)};\n`

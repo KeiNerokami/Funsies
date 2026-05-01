@@ -26,7 +26,11 @@ var Leaderboard = {
     },
 
     endpoint: function(query) {
-        return this.supabaseUrl() + this.scoresPath() + (query || "");
+        try {
+            return new URL(this.scoresPath() + (query || ""), this.supabaseUrl()).toString();
+        } catch (error) {
+            return "";
+        }
     },
 
     headers: function(extraHeaders) {

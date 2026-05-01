@@ -11,7 +11,11 @@
         if (! config.supabaseUrl || ! config.supabaseKey || ! config.authPath) {
             return "";
         }
-        return config.supabaseUrl + config.authPath + path;
+        try {
+            return new URL(config.authPath + path, config.supabaseUrl).toString();
+        } catch (error) {
+            return "";
+        }
     }
 
     function redirectUrl() {
