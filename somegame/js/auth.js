@@ -3,7 +3,8 @@
         authToken: "snake.supabase.authToken",
         authUser: "snake.supabase.authUser",
         refreshToken: "snake.supabase.authRefreshToken",
-        expiresAt: "snake.supabase.authExpiresAt"
+        expiresAt: "snake.supabase.authExpiresAt",
+        codeVerifier: "snake.supabase.authCodeVerifier"
     };
 
     function authEndpoint(path) {
@@ -19,7 +20,13 @@
     }
 
     function redirectUrl() {
-        return window.location.href.split("#")[0];
+        var url = new URL(window.location.href);
+        url.hash = "";
+        url.searchParams.delete("code");
+        url.searchParams.delete("error");
+        url.searchParams.delete("error_code");
+        url.searchParams.delete("error_description");
+        return url.toString();
     }
 
     function parseFragment() {
@@ -120,11 +127,36 @@
         }
     }
 
+    function base64UrlEncode(bytes) {
+        var binary = "";
+        for (var i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+    }
+
+    function randomVerifier() {
+        var bytes = new Uint8Array(32);
+        window.crypto.getRandomValues(bytes);
+        return base64UrlEncode(bytes);
+    }
+
+    function codeChallenge(verifier) {
+        var bytes = new TextEncoder().encode(verifier);
+        return window.crypto.subtle.digest("SHA-256", bytes).then(function(hash) {
+            return base64UrlEncode(new Uint8Array(hash));
+        });
+    }
+
     function signOut() {
         removeStoredValue(storageKeys.authToken);
         removeStoredValue(storageKeys.authUser);
         removeStoredValue(storageKeys.refreshToken);
         removeStoredValue(storageKeys.expiresAt);
+        removeStoredValue(storageKeys.codeVerifier);
         updateSignedOutUi();
     }
 
@@ -183,14 +215,63 @@
         });
     }
 
-    function handleAuthRedirect() {
-        var params = parseFragment();
-        if (! params.access_token) {
-            return false;
+    function exchangeAuthCode(code) {
+        var verifier = getStoredValue(storageKeys.codeVerifier);
+        removeStoredValue(storageKeys.codeVerifier);
+        if (! code || ! verifier) {
+            $("#authStatus").text("Auth session expired");
+            return Promise.resolve(false);
         }
+        return fetch(authEndpoint("/token?grant_type=pkce"), {
+            method: "POST",
+            headers: {
+                "apikey": Leaderboard.supabaseKey(),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                auth_code: code,
+                code_verifier: verifier
+            })
+        }).then(function(response) {
+            if (! response.ok) {
+                throw new Error("Code exchange failed");
+            }
+            return response.json();
+        }).then(function(session) {
+            storeSession(session);
+            return fetchUser(session.access_token);
+        }).then(function() {
+            return true;
+        }).catch(function() {
+            signOut();
+            $("#authStatus").text("Sign in failed");
+            return false;
+        });
+    }
+
+    function handleAuthRedirect() {
+        var url = new URL(window.location.href);
+        var code = url.searchParams.get("code");
+        var error = url.searchParams.get("error_description") || url.searchParams.get("error");
+        var params = parseFragment();
+        if (code || error || params.access_token) {
+            window.history.replaceState(null, document.title, redirectUrl());
+        }
+        if (error) {
+            $("#authStatus").text("Sign in cancelled");
+            return Promise.resolve(false);
+        }
+        if (code) {
+            return exchangeAuthCode(code);
+        }
+        if (! params.access_token) {
+            return Promise.resolve(false);
+        }
+        // Legacy implicit callback support. New sign-ins use PKCE and should not hit this path.
         storeSession(params);
-        window.history.replaceState(null, document.title, redirectUrl());
-        return true;
+        return fetchUser(params.access_token).then(function() {
+            return true;
+        });
     }
 
     function signInWithDiscord() {
@@ -199,13 +280,26 @@
             $("#authStatus").text("Auth not configured");
             return;
         }
-        window.location.href = endpoint +
-            "?provider=discord&redirect_to=" + encodeURIComponent(redirectUrl());
+        if (! window.crypto || ! window.crypto.subtle || ! window.TextEncoder) {
+            $("#authStatus").text("Browser auth unsupported");
+            return;
+        }
+        var verifier = randomVerifier();
+        setStoredValue(storageKeys.codeVerifier, verifier);
+        codeChallenge(verifier).then(function(challenge) {
+            var url = new URL(endpoint);
+            url.searchParams.set("provider", "discord");
+            url.searchParams.set("redirect_to", redirectUrl());
+            url.searchParams.set("code_challenge", challenge);
+            url.searchParams.set("code_challenge_method", "s256");
+            window.location.href = url.toString();
+        }).catch(function() {
+            removeStoredValue(storageKeys.codeVerifier);
+            $("#authStatus").text("Sign in failed");
+        });
     }
 
     function init() {
-        handleAuthRedirect();
-
         var storedUser = authUser();
         if (storedUser) {
             updateSignedInUi(storedUser);
@@ -213,7 +307,11 @@
             updateSignedOutUi();
         }
 
-        refreshSession().then(fetchUser);
+        handleAuthRedirect().then(function(handledRedirect) {
+            if (! handledRedirect) {
+                refreshSession().then(fetchUser);
+            }
+        });
 
         $("#discordSignIn").click(function() {
             if (authToken()) {
